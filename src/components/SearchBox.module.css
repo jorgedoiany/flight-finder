@@ -1,3 +1,4 @@
+/* Contenedor principal del SearchBox */
 .searchBox {
   display: flex;
   flex-direction: column;
@@ -9,24 +10,31 @@
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  margin-bottom: 40px; /* Despega la barra del borde inferior */
+  margin-bottom: 40px;
   box-sizing: border-box;
 }
 
+/* Estilo para las filas dentro del SearchBox */
 .searchRow {
   display: flex;
   gap: 20px;
   justify-content: space-between;
 }
 
-.searchRow .MuiTextField-root,
-.searchRow .MuiSelect-root,
-.searchRow .MuiAutocomplete-root {
+/* Asegurar que todos los elementos dentro de searchRow tengan el mismo ancho */
+.searchRow > * {
   flex: 1;
 }
 
+/* Ajuste específico para Autocomplete */
+.searchRow .MuiAutocomplete-root {
+  flex: 1;
+  display: flex;
+}
+
+/* Botón de búsqueda */
 .searchButton {
-  background-color: #1976d2; /* Material UI primary color */
+  background-color: #1976d2; /* Color primario de Material UI */
   color: #ffffff;
   padding: 10px 24px;
   font-size: 16px;
@@ -38,11 +46,12 @@
   transition: background-color 0.3s ease;
 }
 
+/* Hover para el botón */
 .searchButton:hover {
-  background-color: #115293; /* Darker shade of Material UI primary color */
+  background-color: #115293; /* Tonalidad más oscura del color primario */
 }
 
-/* Responsiveness */
+/* Responsividad para pantallas pequeñas */
 @media (max-width: 768px) {
   .searchRow {
     flex-direction: column;

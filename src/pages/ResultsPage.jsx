@@ -59,13 +59,25 @@ const ResultsPage = () => {
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
-                  <TableRow>
-                    <TableCell>Airline</TableCell>
-                    <TableCell>Travel Time</TableCell>
-                    <TableCell>Stops</TableCell>
-                    <TableCell>Departure</TableCell>
-                    <TableCell>Arrival</TableCell>
-                    <TableCell>Price</TableCell>
+                  <TableRow style={{ backgroundColor: "#1976d2" }}>
+                    <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
+                      Airline
+                    </TableCell>
+                    <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
+                      Travel Time
+                    </TableCell>
+                    <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
+                      Stops
+                    </TableCell>
+                    <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
+                      Departure
+                    </TableCell>
+                    <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
+                      Arrival
+                    </TableCell>
+                    <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
+                      Price
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

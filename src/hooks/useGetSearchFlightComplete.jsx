@@ -35,6 +35,8 @@ const useGetSearchFlightComplete = (searchParams) => {
           },
         });
 
+        console.log("API Response:", response.data.data);
+
         if (response.data.status) {
           setFlights(response.data.data.itineraries);
         } else {

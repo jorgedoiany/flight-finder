@@ -73,7 +73,6 @@ const SearchBox = () => {
 
   return (
     <form className={styles.searchBox} onSubmit={handleSearch}>
-      {/* Flight type, passengers, and cabin class */}
       <Box className={styles.searchRow} display="flex" gap={2}>
         <Select
           name="flightType"
@@ -107,7 +106,6 @@ const SearchBox = () => {
         </Select>
       </Box>
 
-      {/* Origin and destination */}
       <Box className={styles.searchRow} display="flex" gap={2}>
         <Autocomplete
           options={airports}
@@ -131,7 +129,6 @@ const SearchBox = () => {
         />
       </Box>
 
-      {/* Dates */}
       <Box className={styles.searchRow} display="flex" gap={2}>
         <TextField
           name="departureDate"
@@ -151,7 +148,7 @@ const SearchBox = () => {
             onChange={handleChange}
             InputProps={{
               inputProps: {
-                min: localSearchData.departureDate || undefined, // Restringe la fecha mínima de regreso
+                min: localSearchData.departureDate || undefined,
               },
             }}
             InputLabelProps={{ shrink: true }}
@@ -160,14 +157,12 @@ const SearchBox = () => {
         )}
       </Box>
 
-      {/* Search button */}
       <Box textAlign="center" mt={2}>
         <Button
           className={styles.searchButton}
           variant="contained"
           color="primary"
           type="submit"
-          style={{ borderRadius: "2rem" }}
         >
           Explore
         </Button>

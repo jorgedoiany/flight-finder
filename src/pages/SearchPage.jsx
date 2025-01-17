@@ -11,7 +11,7 @@ const SearchPage = () => {
       </header>
 
       {/* Banner */}
-      <section aria-labelledby="banner-title">
+      <section>
         <Banner />
       </section>
 

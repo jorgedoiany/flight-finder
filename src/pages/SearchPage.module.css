@@ -1,0 +1,16 @@
+.bannerContainer {
+  margin-top: 64px; /* Desplaza el banner hacia abajo */
+}
+
+.searchBoxContainer {
+  margin-bottom: 40px; /* Espacio entre el SearchBox y el footer */
+}
+
+@media (max-width: 768px) {
+  .bannerContainer {
+    margin-top: 56px; /* Ajusta para pantallas pequeñas */
+  }
+  .searchBoxContainer {
+    margin-bottom: 30px; /* Espacio ajustado para pantallas pequeñas */
+  }
+}
