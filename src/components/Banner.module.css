@@ -1,0 +1,36 @@
+.banner {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+}
+
+.bannerImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bannerText {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #000;
+  font-size: 3rem;
+  font-weight: bold;
+  padding: 10px 20px;
+  text-align: center;
+}
+
+/* Responsiveness: Adjust text size on small screens */
+@media (max-width: 768px) {
+  .banner {
+    height: 200px;
+  }
+
+  .bannerText {
+    font-size: 1.5rem;
+    padding: 8px 16px;
+  }
+}

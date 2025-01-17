@@ -1,0 +1,51 @@
+.searchBox {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  margin-bottom: 40px; /* Despega la barra del borde inferior */
+  box-sizing: border-box;
+}
+
+.searchRow {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.searchRow .MuiTextField-root,
+.searchRow .MuiSelect-root,
+.searchRow .MuiAutocomplete-root {
+  flex: 1;
+}
+
+.searchButton {
+  background-color: #1976d2; /* Material UI primary color */
+  color: #ffffff;
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+  align-self: center;
+  transition: background-color 0.3s ease;
+}
+
+.searchButton:hover {
+  background-color: #115293; /* Darker shade of Material UI primary color */
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+  .searchRow {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
