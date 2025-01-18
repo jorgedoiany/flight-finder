@@ -1,5 +1,4 @@
 import { useState } from "react";
-// import { useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Banner from "../components/Banner";
 import useGetSearchFlightComplete from "../hooks/useGetSearchFlightComplete";
@@ -20,12 +19,10 @@ import {
 import styles from "./ResultsPage.module.css";
 
 const ResultsPage = () => {
-  // const location = useLocation();
-  // const [searchParams] = useState(() => location.state?.searchParams || {});
   const [showAll, setShowAll] = useState(false);
   const { searchParams } = useSearchFlights();
 
-  const { flights, loading, error } = useGetSearchFlightComplete(searchParams); //Para reutilizar
+  const { flights, loading, error } = useGetSearchFlightComplete(searchParams);
 
   const displayedFlights = Array.isArray(flights)
     ? showAll
@@ -87,7 +84,6 @@ const ResultsPage = () => {
                       <TableRow key={index}>
                         <TableCell>
                           <Box display="flex" alignItems="center" gap={2}>
-                            {/* Logo de la aerolínea */}
                             <img
                               src={leg.carriers.marketing[0]?.logoUrl || ""}
                               alt={`${
@@ -100,7 +96,6 @@ const ResultsPage = () => {
                                 objectFit: "contain",
                               }}
                             />
-                            {/* Nombre de la aerolínea */}
                             <Typography variant="body2">
                               {leg.carriers.marketing[0]?.name || "Unknown"}
                             </Typography>
@@ -112,7 +107,6 @@ const ResultsPage = () => {
                             flexDirection="row"
                             justifyContent={"space-between"}
                           >
-                            {/* Tiempo de vuelo */}
                             <Typography style={{ fontSize: "0.9rem" }}>
                               {leg.durationInMinutes
                                 ? `${Math.floor(
@@ -120,7 +114,6 @@ const ResultsPage = () => {
                                   )} hr ${leg.durationInMinutes % 60} min`
                                 : "Unknown"}
                             </Typography>
-                            {/* Abreviaturas de los aeropuertos */}
                             <Typography
                               style={{ fontSize: "0.70rem", color: "gray" }}
                             >
@@ -131,11 +124,11 @@ const ResultsPage = () => {
 
                         <TableCell>
                           {leg.stopCount === 0
-                            ? "Direct" // Sin paradas
+                            ? "Direct"
                             : leg.stopCount > 0
                             ? `${leg.stopCount} stop${
                                 leg.stopCount > 1 ? "s" : ""
-                              }` // Parada(s)
+                              }`
                             : "Unknown"}
                         </TableCell>
 
