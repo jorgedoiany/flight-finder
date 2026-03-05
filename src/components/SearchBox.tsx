@@ -10,8 +10,7 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSearchFlights } from "../context/FlightContext";
-import useGetSearchAirports from "../hooks/useGetSearchAirports";
+import { useFlightStore } from '@/store/flightStore';
 import styles from "./SearchBox.module.css";
 
 const SearchBox: React.FC = () => {
@@ -25,8 +24,7 @@ const SearchBox: React.FC = () => {
     returnDate: "",
   });
 
-  const { airports, fetchAirports } = useGetSearchAirports();
-  const { setSearchParams } = useSearchFlights();
+  const { allAirports, searchAirports, searchFlights } = useFlightStore();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,16 +66,18 @@ const SearchBox: React.FC = () => {
     }));
   };
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const searchParams: LegacySearchParams = {
       ...localSearchData,
       returnDate:
-        localSearchData.flightType === "round-trip"
-          ? localSearchData.returnDate || undefined
-          : undefined,
+        localSearchData.flightType === "round-trip" && localSearchData.returnDate
+          ? localSearchData.returnDate
+          : "",
     };
-    setSearchParams(searchParams);
+    
+    // Start the search using Zustand store
+    await searchFlights(searchParams);
     navigate("/results");
   };
 
@@ -118,12 +118,12 @@ const SearchBox: React.FC = () => {
 
       <Box className={styles.searchRow} display="flex" gap={2}>
         <Autocomplete
-          options={airports}
+          options={allAirports}
           getOptionLabel={(option: Airport) =>
             `${option.code} - ${option.name}` || ""
           }
           onInputChange={(_, value: string) =>
-            fetchAirports(value.toUpperCase())
+            searchAirports(value.toUpperCase())
           }
           onChange={(_, value: Airport | null) =>
             handleAutocompleteChange("origin", value)
@@ -133,12 +133,12 @@ const SearchBox: React.FC = () => {
           )}
         />
         <Autocomplete
-          options={airports}
+          options={allAirports}
           getOptionLabel={(option: Airport) =>
             `${option.code} - ${option.name}` || ""
           }
           onInputChange={(_, value: string) =>
-            fetchAirports(value.toUpperCase())
+            searchAirports(value.toUpperCase())
           }
           onChange={(_, value: Airport | null) =>
             handleAutocompleteChange("destination", value)
