@@ -1,33 +1,35 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import type { Airport, LegacySearchParams } from "@/types";
 import {
-  TextField,
-  Select,
-  MenuItem,
-  Button,
-  Box,
   Autocomplete,
+  Box,
+  Button,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  TextField,
 } from "@mui/material";
-import useGetSearchAirport from "../hooks/useGetSearchAirports";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSearchFlights } from "../context/FlightContext";
+import useGetSearchAirports from "../hooks/useGetSearchAirports";
 import styles from "./SearchBox.module.css";
 
-const SearchBox = () => {
-  const [localSearchData, setLocalSearchData] = useState({
+const SearchBox: React.FC = () => {
+  const [localSearchData, setLocalSearchData] = useState<LegacySearchParams>({
     flightType: "round-trip",
     passengers: 1,
     cabinClass: "economy",
-    origin: { entityId: null, skyId: null },
-    destination: { entityId: null, skyId: null },
+    origin: { entityId: "", skyId: "" },
+    destination: { entityId: "", skyId: "" },
     departureDate: "",
     returnDate: "",
   });
 
-  const { airports, fetchAirports } = useGetSearchAirport();
+  const { airports, fetchAirports } = useGetSearchAirports();
   const { setSearchParams } = useSearchFlights();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
     setLocalSearchData((curr) => {
@@ -49,23 +51,31 @@ const SearchBox = () => {
     });
   };
 
-  const handleAutocompleteChange = (name, value) => {
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
+    setLocalSearchData((curr) => ({ ...curr, [name!]: value }));
+  };
+
+  const handleAutocompleteChange = (name: string, value: Airport | null) => {
     setLocalSearchData((curr) => ({
       ...curr,
       [name]: value
-        ? { entityId: value.entityId, skyId: value.skyId.toUpperCase() }
-        : { entityId: null, skyId: null },
+        ? {
+            entityId: value.entityId || "",
+            skyId: value.skyId?.toUpperCase() || "",
+          }
+        : { entityId: "", skyId: "" },
     }));
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const searchParams = {
+    const searchParams: LegacySearchParams = {
       ...localSearchData,
       returnDate:
         localSearchData.flightType === "round-trip"
-          ? localSearchData.returnDate
-          : null,
+          ? localSearchData.returnDate || undefined
+          : undefined,
     };
     setSearchParams(searchParams);
     navigate("/results");
@@ -77,7 +87,7 @@ const SearchBox = () => {
         <Select
           name="flightType"
           value={localSearchData.flightType}
-          onChange={handleChange}
+          onChange={handleSelectChange}
           fullWidth
         >
           <MenuItem value="round-trip">Round trip</MenuItem>
@@ -96,7 +106,7 @@ const SearchBox = () => {
         <Select
           name="cabinClass"
           value={localSearchData.cabinClass}
-          onChange={handleChange}
+          onChange={handleSelectChange}
           fullWidth
         >
           <MenuItem value="economy">Economy</MenuItem>
@@ -109,18 +119,28 @@ const SearchBox = () => {
       <Box className={styles.searchRow} display="flex" gap={2}>
         <Autocomplete
           options={airports}
-          getOptionLabel={(option) => option.skyId || ""}
-          onInputChange={(_, value) => fetchAirports(value.toUpperCase())}
-          onChange={(_, value) => handleAutocompleteChange("origin", value)}
+          getOptionLabel={(option: Airport) =>
+            `${option.code} - ${option.name}` || ""
+          }
+          onInputChange={(_, value: string) =>
+            fetchAirports(value.toUpperCase())
+          }
+          onChange={(_, value: Airport | null) =>
+            handleAutocompleteChange("origin", value)
+          }
           renderInput={(params) => (
             <TextField {...params} label="From" variant="outlined" fullWidth />
           )}
         />
         <Autocomplete
           options={airports}
-          getOptionLabel={(option) => option.skyId || ""}
-          onInputChange={(_, value) => fetchAirports(value.toUpperCase())}
-          onChange={(_, value) =>
+          getOptionLabel={(option: Airport) =>
+            `${option.code} - ${option.name}` || ""
+          }
+          onInputChange={(_, value: string) =>
+            fetchAirports(value.toUpperCase())
+          }
+          onChange={(_, value: Airport | null) =>
             handleAutocompleteChange("destination", value)
           }
           renderInput={(params) => (
@@ -144,7 +164,7 @@ const SearchBox = () => {
             name="returnDate"
             type="date"
             label="Return Date"
-            value={localSearchData.returnDate}
+            value={localSearchData.returnDate || ""}
             onChange={handleChange}
             InputProps={{
               inputProps: {

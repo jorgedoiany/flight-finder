@@ -1,30 +1,31 @@
-import { useState } from "react";
-import Header from "../components/Header";
-import Banner from "../components/Banner";
-import useGetSearchFlightComplete from "../hooks/useGetSearchFlightComplete";
-import { useSearchFlights } from "../context/FlightContext";
+import type { Flight } from "@/types";
 import {
+  Box,
+  Button,
+  CircularProgress,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Typography,
-  CircularProgress,
-  Box,
-  Button,
 } from "@mui/material";
+import React, { useState } from "react";
+import Banner from "../components/Banner";
+import Header from "../components/Header";
+import { useSearchFlights } from "../context/FlightContext";
+import useGetSearchFlightComplete from "../hooks/useGetSearchFlightComplete";
 import styles from "./ResultsPage.module.css";
 
-const ResultsPage = () => {
+const ResultsPage: React.FC = () => {
   const [showAll, setShowAll] = useState(false);
   const { searchParams } = useSearchFlights();
 
   const { flights, loading, error } = useGetSearchFlightComplete(searchParams);
 
-  const displayedFlights = Array.isArray(flights)
+  const displayedFlights: Flight[] = Array.isArray(flights)
     ? showAll
       ? flights
       : flights.slice(0, 7)
@@ -79,65 +80,71 @@ const ResultsPage = () => {
                 </TableHead>
                 <TableBody>
                   {displayedFlights.map((flight, index) => {
-                    const leg = flight.legs[0];
                     return (
-                      <TableRow key={index}>
+                      <TableRow key={flight.id || index}>
                         <TableCell>
                           <Box display="flex" alignItems="center" gap={2}>
-                            <img
-                              src={leg.carriers.marketing[0]?.logoUrl || ""}
-                              alt={`${
-                                leg.carriers.marketing[0]?.name ||
-                                "Unknown Airline"
-                              } Logo`}
-                              style={{
-                                width: "30px",
-                                height: "30px",
-                                objectFit: "contain",
+                            <Box
+                              sx={{
+                                width: 30,
+                                height: 30,
+                                backgroundColor: '#1976d2',
+                                borderRadius: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontSize: '12px',
+                                fontWeight: 'bold'
                               }}
-                            />
-                            <Typography variant="body2">
-                              {leg.carriers.marketing[0]?.name || "Unknown"}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Box
-                            display="flex"
-                            flexDirection="row"
-                            justifyContent={"space-between"}
-                          >
-                            <Typography style={{ fontSize: "0.9rem" }}>
-                              {leg.durationInMinutes
-                                ? `${Math.floor(
-                                    leg.durationInMinutes / 60
-                                  )} hr ${leg.durationInMinutes % 60} min`
-                                : "Unknown"}
-                            </Typography>
-                            <Typography
-                              style={{ fontSize: "0.70rem", color: "gray" }}
                             >
-                              {`${leg.origin.displayCode} - ${leg.destination.displayCode}`}
+                              {flight.airline.substring(0, 2).toUpperCase()}
+                            </Box>
+                            <Typography variant="body2">
+                              {flight.airline}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box display="flex" flexDirection="column">
+                            <Typography variant="body2" fontWeight="medium">
+                              {flight.duration}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {`${flight.departure.airport.code} - ${flight.arrival.airport.code}`}
                             </Typography>
                           </Box>
                         </TableCell>
 
                         <TableCell>
-                          {leg.stopCount === 0
-                            ? "Direct"
-                            : leg.stopCount > 0
-                            ? `${leg.stopCount} stop${
-                                leg.stopCount > 1 ? "s" : ""
-                              }`
-                            : "Unknown"}
+                          <Typography variant="body2">
+                            {flight.stops === 0
+                              ? "Direct"
+                              : `${flight.stops} stop${flight.stops > 1 ? "s" : ""}`}
+                          </Typography>
                         </TableCell>
 
-                        <TableCell>{leg.origin.city || "Unknown"}</TableCell>
                         <TableCell>
-                          {leg.destination.city || "Unknown"}
+                          <Typography variant="body2">
+                            {flight.departure.airport.city}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {flight.arrival.airport.city}
+                          </Typography>
                         </TableCell>
                         <TableCell align="right">
-                          {flight.price.formatted || "N/A"}
+                          <Box display="flex" flexDirection="column" alignItems="flex-end">
+                            <Typography variant="h6" color="primary.main" fontWeight="bold">
+                              {typeof flight.price === "object"
+                                ? flight.price.formatted || `$${flight.price.raw}`
+                                : `$${flight.price}`}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {flight.class}
+                            </Typography>
+                          </Box>
                         </TableCell>
                       </TableRow>
                     );
