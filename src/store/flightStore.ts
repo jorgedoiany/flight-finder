@@ -1,101 +1,112 @@
-import { create } from 'zustand'
-import { devtools, persist } from 'zustand/middleware'
-import { flightService } from '@/services/flightService'
-import type { 
-  Flight, 
-  Airport, 
+import { flightService } from "@/services/flightService";
+import type { ThemeMode } from "@/theme";
+import type {
+  Airport,
+  FilterOptions,
+  Flight,
+  FlightSearchResponse,
   LegacySearchParams,
   SearchParams,
-  FlightSearchResponse,
-  FilterOptions 
-} from '@/types'
+} from "@/types";
+import { create } from "zustand";
+import { devtools, persist } from "zustand/middleware";
 
 // Extended filter options
 export interface AdvancedFiltersState extends FilterOptions {
-  sortBy: 'price' | 'duration' | 'departure' | 'arrival' | 'airline'
-  sortOrder: 'asc' | 'desc'
-  selectedAirlines: string[]
-  selectedAirports: string[]
+  sortBy: "price" | "duration" | "departure" | "arrival" | "airline";
+  sortOrder: "asc" | "desc";
+  selectedAirlines: string[];
+  selectedAirports: string[];
   timePreferences: {
-    departureTime: 'morning' | 'afternoon' | 'evening' | 'night' | 'all'
-    arrivalTime: 'morning' | 'afternoon' | 'evening' | 'night' | 'all'
-  }
-  priceRange: [number, number]
-  durationRange: [number, number] // in minutes
-  maxLayovers: number
-  preferredClass: 'economy' | 'business' | 'first' | 'all'
+    departureTime: "morning" | "afternoon" | "evening" | "night" | "all";
+    arrivalTime: "morning" | "afternoon" | "evening" | "night" | "all";
+  };
+  priceRange: [number, number];
+  durationRange: [number, number]; // in minutes
+  maxLayovers: number;
+  preferredClass: "economy" | "business" | "first" | "all";
 }
 
 // Comparison feature
 export interface FlightComparison {
-  flights: Flight[]
-  isComparing: boolean
+  flights: Flight[];
+  isComparing: boolean;
 }
 
 // Search history
 export interface SearchHistory {
-  id: string
-  searchParams: LegacySearchParams
-  timestamp: Date
-  resultsCount: number
+  id: string;
+  searchParams: LegacySearchParams;
+  timestamp: Date;
+  resultsCount: number;
 }
 
 // Global app state
 interface FlightAppState {
   // Search & Results
-  searchParams: LegacySearchParams | null
-  flights: Flight[]
-  filteredFlights: Flight[]
-  allAirports: Airport[]
-  
+  searchParams: LegacySearchParams | null;
+  flights: Flight[];
+  filteredFlights: Flight[];
+  allAirports: Airport[];
+
   // UI State
-  isLoading: boolean
-  error: string | null
-  currentPage: number
-  totalResults: number
-  
+  isLoading: boolean;
+  error: string | null;
+  currentPage: number;
+  totalResults: number;
+
+  // Theme State
+  themeMode: ThemeMode;
+
   // Advanced Filters
-  filters: AdvancedFiltersState
-  isFiltersOpen: boolean
-  
+  filters: AdvancedFiltersState;
+  isFiltersOpen: boolean;
+
   // Flight Comparison
-  comparison: FlightComparison
-  
+  comparison: FlightComparison;
+
   // Search History
-  searchHistory: SearchHistory[]
-  
+  searchHistory: SearchHistory[];
+
   // Actions - Search
-  setSearchParams: (params: LegacySearchParams | null) => void
-  searchFlights: (params: LegacySearchParams) => Promise<void>
-  clearResults: () => void
-  searchAirports: (query: string) => Promise<void>
-  
+  setSearchParams: (params: LegacySearchParams | null) => void;
+  searchFlights: (params: LegacySearchParams) => Promise<void>;
+  clearResults: () => void;
+  searchAirports: (query: string) => Promise<void>;
+
   // Actions - Filters
-  updateFilters: (filters: Partial<AdvancedFiltersState>) => void
-  resetFilters: () => void
-  toggleFilters: () => void
-  applyFilters: () => void
-  
+  updateFilters: (filters: Partial<AdvancedFiltersState>) => void;
+  resetFilters: () => void;
+  toggleFilters: () => void;
+  applyFilters: () => void;
+
   // Actions - Comparison
-  addToComparison: (flight: Flight) => void
-  removeFromComparison: (flightId: string) => void
-  clearComparison: () => void
-  toggleComparison: () => void
-  
+  addToComparison: (flight: Flight) => void;
+  removeFromComparison: (flightId: string) => void;
+  clearComparison: () => void;
+  toggleComparison: () => void;
+
   // Actions - History
-  saveSearchToHistory: () => void
-  loadSearchFromHistory: (historyItem: SearchHistory) => void
-  clearSearchHistory: () => void
-  
+  saveSearchToHistory: () => void;
+  loadSearchFromHistory: (historyItem: SearchHistory) => void;
+  clearSearchHistory: () => void;
+
   // Actions - Pagination & Sorting
-  setCurrentPage: (page: number) => void
-  sortFlights: (sortBy: AdvancedFiltersState['sortBy'], sortOrder: AdvancedFiltersState['sortOrder']) => void
+  setCurrentPage: (page: number) => void;
+  sortFlights: (
+    sortBy: AdvancedFiltersState["sortBy"],
+    sortOrder: AdvancedFiltersState["sortOrder"],
+  ) => void;
+
+  // Actions - Theme
+  toggleTheme: () => void;
+  setThemeMode: (mode: ThemeMode) => void;
 }
 
 // Default filter state
 const defaultFilters: AdvancedFiltersState = {
-  sortBy: 'price',
-  sortOrder: 'asc',
+  sortBy: "price",
+  sortOrder: "asc",
   selectedAirlines: [],
   selectedAirports: [],
   airlines: [],
@@ -103,119 +114,137 @@ const defaultFilters: AdvancedFiltersState = {
   durationRange: [0, 1440], // 0-24 hours
   maxLayovers: 3,
   timePreferences: {
-    departureTime: 'all',
-    arrivalTime: 'all'
+    departureTime: "all",
+    arrivalTime: "all",
   },
-  departureTime: 'all',
-  preferredClass: 'all',
-  maxStops: 3
-}
+  departureTime: "all",
+  preferredClass: "all",
+  maxStops: 3,
+};
 
 // Helper functions
-const convertLegacyToSearchParams = (legacyParams: LegacySearchParams): SearchParams => ({
-  from: legacyParams.origin.skyId || legacyParams.origin.entityId || '',
-  to: legacyParams.destination.skyId || legacyParams.destination.entityId || '',
+const convertLegacyToSearchParams = (
+  legacyParams: LegacySearchParams,
+): SearchParams => ({
+  from: legacyParams.origin.skyId || legacyParams.origin.entityId || "",
+  to: legacyParams.destination.skyId || legacyParams.destination.entityId || "",
   departDate: legacyParams.departureDate,
   returnDate: legacyParams.returnDate || undefined,
   passengers: {
     adults: legacyParams.passengers || 1,
     children: 0,
-    infants: 0
+    infants: 0,
   },
-  class: (legacyParams.cabinClass as 'economy' | 'business' | 'first') || 'economy'
-})
+  class:
+    (legacyParams.cabinClass as "economy" | "business" | "first") || "economy",
+});
 
-const applyAdvancedFilters = (flights: Flight[], filters: AdvancedFiltersState): Flight[] => {
-  let filtered = [...flights]
-  
+const applyAdvancedFilters = (
+  flights: Flight[],
+  filters: AdvancedFiltersState,
+): Flight[] => {
+  let filtered = [...flights];
+
   // Airline filter
   if (filters.selectedAirlines.length > 0) {
-    filtered = filtered.filter(flight => 
-      filters.selectedAirlines.includes(flight.airline)
-    )
+    filtered = filtered.filter((flight) =>
+      filters.selectedAirlines.includes(flight.airline),
+    );
   }
-  
+
   // Price range filter
-  filtered = filtered.filter(flight => {
-    const price = typeof flight.price === 'object' ? flight.price.raw || 0 : flight.price
-    return price >= filters.priceRange[0] && price <= filters.priceRange[1]
-  })
-  
+  filtered = filtered.filter((flight) => {
+    const price =
+      typeof flight.price === "object" ? flight.price.raw || 0 : flight.price;
+    return price >= filters.priceRange[0] && price <= filters.priceRange[1];
+  });
+
   // Duration filter
-  filtered = filtered.filter(flight => {
-    const [hours, minutes] = flight.duration.match(/(\d+)h\s*(\d+)?m?/) || ['0', '0', '0']
-    const totalMinutes = parseInt(hours) * 60 + parseInt(minutes || '0')
-    return totalMinutes >= filters.durationRange[0] && totalMinutes <= filters.durationRange[1]
-  })
-  
+  filtered = filtered.filter((flight) => {
+    const [hours, minutes] = flight.duration.match(/(\d+)h\s*(\d+)?m?/) || [
+      "0",
+      "0",
+      "0",
+    ];
+    const totalMinutes = parseInt(hours) * 60 + parseInt(minutes || "0");
+    return (
+      totalMinutes >= filters.durationRange[0] &&
+      totalMinutes <= filters.durationRange[1]
+    );
+  });
+
   // Stops filter
-  filtered = filtered.filter(flight => flight.stops <= filters.maxLayovers)
-  
+  filtered = filtered.filter((flight) => flight.stops <= filters.maxLayovers);
+
   // Class filter
-  if (filters.preferredClass !== 'all') {
-    filtered = filtered.filter(flight => flight.class === filters.preferredClass)
+  if (filters.preferredClass !== "all") {
+    filtered = filtered.filter(
+      (flight) => flight.class === filters.preferredClass,
+    );
   }
-  
+
   // Time preferences
-  if (filters.timePreferences.departureTime !== 'all') {
-    filtered = filtered.filter(flight => {
-      const hour = parseInt(flight.departure.time.split(':')[0])
-      const timeSlot = getTimeSlot(hour)
-      return timeSlot === filters.timePreferences.departureTime
-    })
+  if (filters.timePreferences.departureTime !== "all") {
+    filtered = filtered.filter((flight) => {
+      const hour = parseInt(flight.departure.time.split(":")[0]);
+      const timeSlot = getTimeSlot(hour);
+      return timeSlot === filters.timePreferences.departureTime;
+    });
   }
-  
+
   // Sort flights
   filtered.sort((a, b) => {
-    let comparison = 0
-    
+    let comparison = 0;
+
     switch (filters.sortBy) {
-      case 'price': {
-        const priceA = typeof a.price === 'object' ? a.price.raw || 0 : a.price
-        const priceB = typeof b.price === 'object' ? b.price.raw || 0 : b.price
-        comparison = priceA - priceB
-        break
+      case "price": {
+        const priceA = typeof a.price === "object" ? a.price.raw || 0 : a.price;
+        const priceB = typeof b.price === "object" ? b.price.raw || 0 : b.price;
+        comparison = priceA - priceB;
+        break;
       }
-      case 'duration': {
-        const durationA = parseDurationToMinutes(a.duration)
-        const durationB = parseDurationToMinutes(b.duration)
-        comparison = durationA - durationB
-        break
+      case "duration": {
+        const durationA = parseDurationToMinutes(a.duration);
+        const durationB = parseDurationToMinutes(b.duration);
+        comparison = durationA - durationB;
+        break;
       }
-      case 'departure': {
-        comparison = a.departure.time.localeCompare(b.departure.time)
-        break
+      case "departure": {
+        comparison = a.departure.time.localeCompare(b.departure.time);
+        break;
       }
-      case 'arrival': {
-        comparison = a.arrival.time.localeCompare(b.arrival.time)
-        break
+      case "arrival": {
+        comparison = a.arrival.time.localeCompare(b.arrival.time);
+        break;
       }
-      case 'airline': {
-        comparison = a.airline.localeCompare(b.airline)
-        break
+      case "airline": {
+        comparison = a.airline.localeCompare(b.airline);
+        break;
       }
     }
-    
-    return filters.sortOrder === 'asc' ? comparison : -comparison
-  })
-  
-  return filtered
-}
 
-const getTimeSlot = (hour: number): AdvancedFiltersState['timePreferences']['departureTime'] => {
-  if (hour >= 6 && hour < 12) return 'morning'
-  if (hour >= 12 && hour < 18) return 'afternoon'
-  if (hour >= 18 && hour < 22) return 'evening'
-  return 'night'
-}
+    return filters.sortOrder === "asc" ? comparison : -comparison;
+  });
+
+  return filtered;
+};
+
+const getTimeSlot = (
+  hour: number,
+): AdvancedFiltersState["timePreferences"]["departureTime"] => {
+  if (hour >= 6 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 18) return "afternoon";
+  if (hour >= 18 && hour < 22) return "evening";
+  return "night";
+};
 
 const parseDurationToMinutes = (duration: string): number => {
-  const match = duration.match(/(\d+)h\s*(\d+)?m?/)
-  if (!match) return 0
-  const hours = parseInt(match[1]) || 0
-  const minutes = parseInt(match[2]) || 0
-  return hours * 60 + minutes
-}
+  const match = duration.match(/(\d+)h\s*(\d+)?m?/);
+  if (!match) return 0;
+  const hours = parseInt(match[1]) || 0;
+  const minutes = parseInt(match[2]) || 0;
+  return hours * 60 + minutes;
+};
 
 // Create the Zustand store
 export const useFlightStore = create<FlightAppState>()(
@@ -227,192 +256,222 @@ export const useFlightStore = create<FlightAppState>()(
         flights: [],
         filteredFlights: [],
         allAirports: [],
-        
+
         isLoading: false,
         error: null,
         currentPage: 1,
         totalResults: 0,
-        
+
+        // Theme state
+        themeMode: "light",
+
         filters: defaultFilters,
         isFiltersOpen: false,
-        
+
         comparison: {
           flights: [],
-          isComparing: false
+          isComparing: false,
         },
-        
+
         searchHistory: [],
-        
+
         // Search actions
         setSearchParams: (params) => set({ searchParams: params }),
-        
+
         searchFlights: async (params) => {
-          set({ isLoading: true, error: null })
-          
+          set({ isLoading: true, error: null });
+
           try {
-            const searchParams = convertLegacyToSearchParams(params)
-            const response: FlightSearchResponse = await flightService.searchFlights(searchParams)
-            
+            const searchParams = convertLegacyToSearchParams(params);
+            const response: FlightSearchResponse =
+              await flightService.searchFlights(searchParams);
+
             if (response.flights && response.flights.length > 0) {
-              const { filters } = get()
-              const filteredFlights = applyAdvancedFilters(response.flights, filters)
-              
+              const { filters } = get();
+              const filteredFlights = applyAdvancedFilters(
+                response.flights,
+                filters,
+              );
+
               set({
                 flights: response.flights,
                 filteredFlights,
                 totalResults: response.total,
                 searchParams: params,
                 isLoading: false,
-                currentPage: 1
-              })
-              
+                currentPage: 1,
+              });
+
               // Auto-save to history
-              get().saveSearchToHistory()
+              get().saveSearchToHistory();
             } else {
               set({
                 flights: [],
                 filteredFlights: [],
                 totalResults: 0,
-                error: 'No flights found for the selected criteria',
-                isLoading: false
-              })
+                error: "No flights found for the selected criteria",
+                isLoading: false,
+              });
             }
           } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to search flights'
+            const errorMessage =
+              error instanceof Error
+                ? error.message
+                : "Failed to search flights";
             set({
               error: errorMessage,
               flights: [],
               filteredFlights: [],
               totalResults: 0,
-              isLoading: false
-            })
+              isLoading: false,
+            });
           }
         },
-        
-        clearResults: () => set({
-          flights: [],
-          filteredFlights: [],
-          totalResults: 0,
-          error: null,
-          currentPage: 1
-        }),
-        
+
+        clearResults: () =>
+          set({
+            flights: [],
+            filteredFlights: [],
+            totalResults: 0,
+            error: null,
+            currentPage: 1,
+          }),
+
         searchAirports: async (query) => {
-          if (!query || query.length < 2) return
-          
+          if (!query || query.length < 2) return;
+
           try {
-            const airports = await flightService.searchAirports(query)
-            set({ allAirports: airports })
+            const airports = await flightService.searchAirports(query);
+            set({ allAirports: airports });
           } catch (error) {
-            console.error('Error searching airports:', error)
+            console.error("Error searching airports:", error);
           }
         },
-        
+
         // Filter actions
         updateFilters: (newFilters) => {
-          const updatedFilters = { ...get().filters, ...newFilters }
-          const { flights } = get()
-          const filteredFlights = applyAdvancedFilters(flights, updatedFilters)
-          
+          const updatedFilters = { ...get().filters, ...newFilters };
+          const { flights } = get();
+          const filteredFlights = applyAdvancedFilters(flights, updatedFilters);
+
           set({
             filters: updatedFilters,
             filteredFlights,
-            currentPage: 1
-          })
+            currentPage: 1,
+          });
         },
-        
+
         resetFilters: () => {
-          const { flights } = get()
-          const filteredFlights = applyAdvancedFilters(flights, defaultFilters)
-          
+          const { flights } = get();
+          const filteredFlights = applyAdvancedFilters(flights, defaultFilters);
+
           set({
             filters: defaultFilters,
             filteredFlights,
-            currentPage: 1
-          })
+            currentPage: 1,
+          });
         },
-        
-        toggleFilters: () => set(state => ({ isFiltersOpen: !state.isFiltersOpen })),
-        
+
+        toggleFilters: () =>
+          set((state) => ({ isFiltersOpen: !state.isFiltersOpen })),
+
         applyFilters: () => {
-          const { flights, filters } = get()
-          const filteredFlights = applyAdvancedFilters(flights, filters)
-          set({ filteredFlights, currentPage: 1 })
+          const { flights, filters } = get();
+          const filteredFlights = applyAdvancedFilters(flights, filters);
+          set({ filteredFlights, currentPage: 1 });
         },
-        
+
         // Comparison actions
         addToComparison: (flight) => {
-          const { comparison } = get()
-          if (comparison.flights.length >= 3) return // Max 3 flights
-          
-          const exists = comparison.flights.some(f => f.id === flight.id)
+          const { comparison } = get();
+          if (comparison.flights.length >= 3) return; // Max 3 flights
+
+          const exists = comparison.flights.some((f) => f.id === flight.id);
           if (!exists) {
             set({
               comparison: {
                 ...comparison,
-                flights: [...comparison.flights, flight]
-              }
-            })
+                flights: [...comparison.flights, flight],
+              },
+            });
           }
         },
-        
+
         removeFromComparison: (flightId) => {
-          const { comparison } = get()
+          const { comparison } = get();
           set({
             comparison: {
               ...comparison,
-              flights: comparison.flights.filter(f => f.id !== flightId)
-            }
-          })
+              flights: comparison.flights.filter((f) => f.id !== flightId),
+            },
+          });
         },
-        
-        clearComparison: () => set({
-          comparison: { flights: [], isComparing: false }
-        }),
-        
-        toggleComparison: () => set(state => ({
-          comparison: { ...state.comparison, isComparing: !state.comparison.isComparing }
-        })),
-        
+
+        clearComparison: () =>
+          set({
+            comparison: { flights: [], isComparing: false },
+          }),
+
+        toggleComparison: () =>
+          set((state) => ({
+            comparison: {
+              ...state.comparison,
+              isComparing: !state.comparison.isComparing,
+            },
+          })),
+
         // History actions
         saveSearchToHistory: () => {
-          const { searchParams, totalResults, searchHistory } = get()
-          if (!searchParams) return
-          
+          const { searchParams, totalResults, searchHistory } = get();
+          if (!searchParams) return;
+
           const newHistoryItem: SearchHistory = {
             id: `search_${Date.now()}`,
             searchParams,
             timestamp: new Date(),
-            resultsCount: totalResults
-          }
-          
+            resultsCount: totalResults,
+          };
+
           // Keep only last 10 searches
-          const updatedHistory = [newHistoryItem, ...searchHistory].slice(0, 10)
-          set({ searchHistory: updatedHistory })
+          const updatedHistory = [newHistoryItem, ...searchHistory].slice(
+            0,
+            10,
+          );
+          set({ searchHistory: updatedHistory });
         },
-        
+
         loadSearchFromHistory: (historyItem) => {
-          get().searchFlights(historyItem.searchParams)
+          get().searchFlights(historyItem.searchParams);
         },
-        
+
         clearSearchHistory: () => set({ searchHistory: [] }),
-        
+
         // Pagination & Sorting
         setCurrentPage: (page) => set({ currentPage: page }),
-        
+
         sortFlights: (sortBy, sortOrder) => {
-          const updatedFilters = { ...get().filters, sortBy, sortOrder }
-          get().updateFilters(updatedFilters)
-        }
+          const updatedFilters = { ...get().filters, sortBy, sortOrder };
+          get().updateFilters(updatedFilters);
+        },
+
+        // Theme actions
+        toggleTheme: () => {
+          const currentMode = get().themeMode;
+          const newMode: ThemeMode = currentMode === "light" ? "dark" : "light";
+          set({ themeMode: newMode });
+        },
+
+        setThemeMode: (mode) => set({ themeMode: mode }),
       }),
       {
-        name: 'flight-app-storage',
+        name: "flight-app-storage",
         partialize: (state) => ({
           searchHistory: state.searchHistory,
-          filters: state.filters
-        })
-      }
+          filters: state.filters,
+          themeMode: state.themeMode,
+        }),
+      },
     ),
-    { name: 'flight-store' }
-  )
-)
+    { name: "flight-store" },
+  ),
+);
