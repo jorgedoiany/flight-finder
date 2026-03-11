@@ -1,3 +1,5 @@
+import { vi } from 'vitest'
+
 // Mock flight service for testing
 export const mockFlightService = {
   searchFlights: vi.fn().mockResolvedValue([

@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -11,12 +11,19 @@ const mockFlights: Flight[] = [
     id: '1',
     airline: 'American Airlines',
     flightNumber: 'AA123',
-    origin: { code: 'NYC', name: 'New York' },
-    destination: { code: 'LAX', name: 'Los Angeles' },
-    departure: { time: '08:00', airport: 'JFK' },
-    arrival: { time: '11:30', airport: 'LAX' },
+    departure: {
+      airport: { code: 'JFK', name: 'John F. Kennedy International', city: 'New York', country: 'USA' },
+      time: '08:00',
+      date: '2024-12-25',
+    },
+    arrival: {
+      airport: { code: 'LAX', name: 'Los Angeles International', city: 'Los Angeles', country: 'USA' },
+      time: '11:30',
+      date: '2024-12-25',
+    },
     duration: '5h 30m',
     price: 299,
+    currency: 'USD',
     stops: 0,
     aircraft: 'Boeing 737',
     class: 'economy',
@@ -25,12 +32,19 @@ const mockFlights: Flight[] = [
     id: '2',
     airline: 'Delta Airlines',
     flightNumber: 'DL456',
-    origin: { code: 'NYC', name: 'New York' },
-    destination: { code: 'LAX', name: 'Los Angeles' },
-    departure: { time: '14:00', airport: 'LGA' },
-    arrival: { time: '17:30', airport: 'LAX' },
+    departure: {
+      airport: { code: 'LGA', name: 'LaGuardia Airport', city: 'New York', country: 'USA' },
+      time: '14:00',
+      date: '2024-12-25',
+    },
+    arrival: {
+      airport: { code: 'LAX', name: 'Los Angeles International', city: 'Los Angeles', country: 'USA' },
+      time: '17:30',
+      date: '2024-12-25',
+    },
     duration: '5h 30m',
     price: 349,
+    currency: 'USD',
     stops: 0,
     aircraft: 'Airbus A320',
     class: 'economy',

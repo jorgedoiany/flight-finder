@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useFlightStore } from '../flightStore'
 import { flightService } from '@/services/flightService'
@@ -13,12 +13,19 @@ const mockFlights: Flight[] = [
     id: '1',
     airline: 'American Airlines',
     flightNumber: 'AA123',
-    origin: { code: 'NYC', name: 'New York' },
-    destination: { code: 'LAX', name: 'Los Angeles' },
-    departure: { time: '08:00', airport: 'JFK' },
-    arrival: { time: '11:30', airport: 'LAX' },
+    departure: {
+      airport: { code: 'JFK', name: 'John F. Kennedy International', city: 'New York', country: 'USA' },
+      time: '08:00',
+      date: '2024-12-25',
+    },
+    arrival: {
+      airport: { code: 'LAX', name: 'Los Angeles International', city: 'Los Angeles', country: 'USA' },
+      time: '11:30',
+      date: '2024-12-25',
+    },
     duration: '5h 30m',
     price: 299,
+    currency: 'USD',
     stops: 0,
     aircraft: 'Boeing 737',
     class: 'economy',
@@ -27,12 +34,19 @@ const mockFlights: Flight[] = [
     id: '2',
     airline: 'Delta Airlines',
     flightNumber: 'DL456',
-    origin: { code: 'NYC', name: 'New York' },
-    destination: { code: 'LAX', name: 'Los Angeles' },
-    departure: { time: '14:00', airport: 'LGA' },
-    arrival: { time: '17:30', airport: 'LAX' },
+    departure: {
+      airport: { code: 'LGA', name: 'LaGuardia Airport', city: 'New York', country: 'USA' },
+      time: '14:00',
+      date: '2024-12-25',
+    },
+    arrival: {
+      airport: { code: 'LAX', name: 'Los Angeles International', city: 'Los Angeles', country: 'USA' },
+      time: '17:30',
+      date: '2024-12-25',
+    },
     duration: '5h 30m',
     price: 349,
+    currency: 'USD',
     stops: 0,
     aircraft: 'Airbus A320',
     class: 'economy',
@@ -41,12 +55,19 @@ const mockFlights: Flight[] = [
     id: '3',
     airline: 'United Airlines',
     flightNumber: 'UA789',
-    origin: { code: 'NYC', name: 'New York' },
-    destination: { code: 'LAX', name: 'Los Angeles' },
-    departure: { time: '18:00', airport: 'EWR' },
-    arrival: { time: '21:30', airport: 'LAX' },
+    departure: {
+      airport: { code: 'EWR', name: 'Newark Liberty International', city: 'Newark', country: 'USA' },
+      time: '18:00',
+      date: '2024-12-25',
+    },
+    arrival: {
+      airport: { code: 'LAX', name: 'Los Angeles International', city: 'Los Angeles', country: 'USA' },
+      time: '21:30',
+      date: '2024-12-25',
+    },
     duration: '5h 30m',
     price: 425,
+    currency: 'USD',
     stops: 1,
     aircraft: 'Boeing 777',
     class: 'business',
@@ -67,7 +88,7 @@ const mockSearchResponse: FlightSearchResponse = {
   flights: mockFlights,
   total: mockFlights.length,
   page: 1,
-  limit: 10,
+  totalPages: 1,
 }
 
 describe('Flight Store', () => {
@@ -172,7 +193,7 @@ describe('Flight Store', () => {
         flights: [],
         total: 0,
         page: 1,
-        limit: 10,
+        totalPages: 1,
       })
       
       const { result } = renderHook(() => useFlightStore())
@@ -313,8 +334,10 @@ describe('Flight Store', () => {
         })
       })
       
-      // Should only include flights with prices between 300-500
-      const filteredPrices = result.current.filteredFlights.map(f => f.price)
+      // Should filter flights based on price range
+      const filteredPrices = result.current.filteredFlights.map(f => {
+        return typeof f.price === 'number' ? f.price : (f.price.raw || 0)
+      })
       expect(filteredPrices.every(price => price >= 300 && price <= 500)).toBe(true)
     })
 
@@ -513,8 +536,8 @@ describe('Flight Store', () => {
   describe('Loading States', () => {
     it('should set loading state during search', async () => {
       // Mock a delayed response
-      let resolve: (value: any) => void
-      const promise = new Promise(res => {
+      let resolve: (value: FlightSearchResponse) => void
+      const promise = new Promise<FlightSearchResponse>(res => {
         resolve = res
       })
       mockFlightService.searchFlights.mockReturnValue(promise)
